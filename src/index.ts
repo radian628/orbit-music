@@ -97,7 +97,7 @@ function major(note: number) {
 }
 
 function loop() {
-  ctx.fillStyle = "black";
+  ctx.fillStyle = "#0001";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   if (bodies.length > 0) {
     let avgX = 0;
