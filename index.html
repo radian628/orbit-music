@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      #canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+
+      #settings {
+        position: absolute;
+        top: 0;
+        left: 0;
+        color: white;
+        background-color: #0008;
+        font-family: sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
+    <div id="settings">
+      <label>Mass</label>
+      <input type="number" id="mass-input" value="1000000" />
+      <br />
+      <label>Radius</label>
+      <input type="number" id="radius-input" value="30" />
+      <br />
+      <label>Frequency</label>
+      <input type="number" id="frequency-input" value="440" />
+    </div>
+    <script type="module" src="./dist/index.js"></script>
+  </body>
+</html>
