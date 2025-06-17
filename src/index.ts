@@ -63,6 +63,10 @@ function newObjectFreq() {
   );
 }
 
+function newObjectSample() {
+  return (document.getElementById("sample-input")! as HTMLSelectElement).value;
+}
+
 function newObject() {
   return {
     x: mouseDownPos.x - viewerX,
@@ -72,10 +76,11 @@ function newObject() {
     mass: newObjectMass(),
     radius: newObjectRadius(),
     freq: newObjectFreq(),
+    sample: newObjectSample(),
   };
 }
 
-const TIMESTEP = 0.03;
+const TIMESTEP = 0.01;
 
 function drawGravSim(
   ctx: CanvasRenderingContext2D,
@@ -140,30 +145,35 @@ function loop() {
     ctx.fillStyle = "#fff6";
 
     for (let i = 0; i < 100; i++) {
-      runGravSim(projection, TIMESTEP * 1);
+      for (let i = 0; i < 10; i++) {
+        runGravSim(projection, TIMESTEP * 1);
+      }
       drawGravSim(ctx, projection);
     }
   }
 
-  const nextstep = cloneBodies(bodies);
-  runGravSim(nextstep, TIMESTEP);
+  for (let s = 0; s < 10; s++) {
+    const nextstep = cloneBodies(bodies);
+    runGravSim(nextstep, TIMESTEP);
 
-  for (let i = 0; i < nextstep.length; i++) {
-    if (Math.sign(nextstep[i].dy) !== Math.sign(bodies[i].dy)) {
-      const freq = bodies[i].freq;
-      const pitchChange = freq / 440;
-      playSound("dist/tone.wav", pitchChange);
-      decorations.push({
-        x: bodies[i].x,
-        y: bodies[i].y,
-        radius: bodies[i].radius,
-        lifeLeft: 30,
-      });
+    for (let i = 0; i < nextstep.length; i++) {
+      if (Math.sign(nextstep[i].dy) !== Math.sign(bodies[i].dy)) {
+        const freq = bodies[i].freq;
+        const pitchChange = freq / 440;
+        playSound(`dist/${bodies[i].sample}`, pitchChange);
+        decorations.push({
+          x: bodies[i].x,
+          y: bodies[i].y,
+          radius: bodies[i].radius,
+          lifeLeft: 30,
+        });
+      }
     }
+
+    runGravSim(bodies, TIMESTEP);
   }
 
   ctx.fillStyle = "white";
-  runGravSim(bodies, TIMESTEP);
   drawGravSim(ctx, bodies);
 
   for (const d of decorations) {
