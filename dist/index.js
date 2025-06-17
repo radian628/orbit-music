@@ -127,6 +127,7 @@
   }
   var viewerX = 0;
   var viewerY = 0;
+  var decorations = [];
   function loop() {
     ctx.fillStyle = "#0001";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -167,11 +168,26 @@
         const freq = bodies[i].freq;
         const pitchChange = freq / 440;
         playSound("dist/tone.wav", pitchChange);
+        decorations.push({
+          x: bodies[i].x,
+          y: bodies[i].y,
+          radius: bodies[i].radius,
+          lifeLeft: 30
+        });
       }
     }
     ctx.fillStyle = "white";
     runGravSim(bodies, TIMESTEP);
     drawGravSim(ctx, bodies);
+    for (const d of decorations) {
+      const sizeMul = (1 - d.lifeLeft / 30) * 2 + 1;
+      ctx.globalAlpha = d.lifeLeft / 30;
+      ctx.beginPath();
+      ctx.arc(d.x, d.y, d.radius * sizeMul, 0, Math.PI * 2);
+      ctx.fill();
+      d.lifeLeft--;
+    }
+    decorations = decorations.filter((d) => d.lifeLeft > 0);
     ctx.restore();
     requestAnimationFrame(loop);
   }
