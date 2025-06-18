@@ -22,6 +22,38 @@
     }
   }
 
+  // src/notes-parser.ts
+  var baseFreqs = {
+    A: 440,
+    B: 440 * Math.pow(2, 2 / 12),
+    C: 440 * Math.pow(2, 3 / 12),
+    D: 440 * Math.pow(2, 5 / 12),
+    E: 440 * Math.pow(2, 7 / 12),
+    F: 440 * Math.pow(2, 8 / 12),
+    G: 440 * Math.pow(2, 10 / 12)
+  };
+  function parseNotes(str) {
+    return str.split(/\s+/g).map(
+      (s) => s.split(/\&/g).flatMap((n) => {
+        const parsedNote = n.match(/([A-G])([b#]*)(\d*)([+-]\d+)?/);
+        if (!parsedNote) return [];
+        const [_, baseNote, sharpsAndFlats, octave, bend] = parsedNote;
+        let freq = baseFreqs[baseNote];
+        for (const c of sharpsAndFlats ?? "") {
+          if (c === "#") {
+            freq *= Math.pow(2, 1 / 12);
+          } else {
+            freq *= Math.pow(2, -1 / 12);
+          }
+        }
+        freq *= Math.pow(2, (octave ? Number(octave) : 4) - 4);
+        freq *= Math.pow(2, Number(bend ?? 0) / 1200);
+        console.log(freq, baseNote, sharpsAndFlats, octave, bend);
+        return [freq];
+      })
+    );
+  }
+
   // src/sound.ts
   var ac = new AudioContext();
   var soundCache = /* @__PURE__ */ new Map();
@@ -102,9 +134,7 @@
     );
   }
   function newObjectFreq() {
-    return Number(
-      document.getElementById("frequency-input").value
-    );
+    return document.getElementById("frequency-input").value;
   }
   function newObjectSample() {
     return document.getElementById("sample-input").value;
@@ -117,8 +147,9 @@
       dy: destPos.y - mouseDownPos.y,
       mass: newObjectMass(),
       radius: newObjectRadius(),
-      freq: newObjectFreq(),
-      sample: newObjectSample()
+      freq: parseNotes(newObjectFreq()),
+      sample: newObjectSample(),
+      noteIndex: 0
     };
   }
   var TIMESTEP = 0.01;
@@ -171,10 +202,14 @@
       const nextstep = cloneBodies(bodies);
       runGravSim(nextstep, TIMESTEP);
       for (let i = 0; i < nextstep.length; i++) {
-        if (Math.sign(nextstep[i].dy) !== Math.sign(bodies[i].dy)) {
-          const freq = bodies[i].freq;
-          const pitchChange = freq / 440;
-          playSound(`dist/${bodies[i].sample}`, pitchChange);
+        if (Math.sign(nextstep[i].dy) !== Math.sign(bodies[i].dy) && bodies[i].freq.length > 0) {
+          const chord = bodies[i].freq[bodies[i].noteIndex];
+          for (const f of chord) {
+            console.log(f);
+            const pitchChange = f / 440;
+            playSound(`dist/${bodies[i].sample}`, pitchChange);
+          }
+          bodies[i].noteIndex = (bodies[i].noteIndex + 1) % bodies[i].freq.length;
           decorations.push({
             x: bodies[i].x,
             y: bodies[i].y,

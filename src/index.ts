@@ -1,4 +1,5 @@
 import { cloneBodies, GravitationalBody, runGravSim } from "./nbody";
+import { parseNotes } from "./notes-parser";
 import { playSound } from "./sound";
 
 const canvas = document.getElementById("canvas")! as HTMLCanvasElement;
@@ -58,9 +59,8 @@ function newObjectRadius() {
 }
 
 function newObjectFreq() {
-  return Number(
-    (document.getElementById("frequency-input")! as HTMLInputElement).value
-  );
+  return (document.getElementById("frequency-input")! as HTMLInputElement)
+    .value;
 }
 
 function newObjectSample() {
@@ -75,8 +75,9 @@ function newObject() {
     dy: destPos.y - mouseDownPos.y,
     mass: newObjectMass(),
     radius: newObjectRadius(),
-    freq: newObjectFreq(),
+    freq: parseNotes(newObjectFreq()),
     sample: newObjectSample(),
+    noteIndex: 0,
   };
 }
 
@@ -157,10 +158,17 @@ function loop() {
     runGravSim(nextstep, TIMESTEP);
 
     for (let i = 0; i < nextstep.length; i++) {
-      if (Math.sign(nextstep[i].dy) !== Math.sign(bodies[i].dy)) {
-        const freq = bodies[i].freq;
-        const pitchChange = freq / 440;
-        playSound(`dist/${bodies[i].sample}`, pitchChange);
+      if (
+        Math.sign(nextstep[i].dy) !== Math.sign(bodies[i].dy) &&
+        bodies[i].freq.length > 0
+      ) {
+        const chord = bodies[i].freq[bodies[i].noteIndex];
+        for (const f of chord) {
+          console.log(f);
+          const pitchChange = f / 440;
+          playSound(`dist/${bodies[i].sample}`, pitchChange);
+        }
+        bodies[i].noteIndex = (bodies[i].noteIndex + 1) % bodies[i].freq.length;
         decorations.push({
           x: bodies[i].x,
           y: bodies[i].y,

@@ -5,8 +5,9 @@ export type GravitationalBody = {
   dy: number;
   mass: number;
   radius: number;
-  freq: number;
+  freq: number[][];
   sample: string;
+  noteIndex: number;
 };
 
 export function cloneBodies(bodies: GravitationalBody[]): GravitationalBody[] {
